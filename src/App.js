@@ -6,16 +6,36 @@ import TodoSearch from './TodoSearch';
 import TodoCounterr from './TodoCounterr';
 import TodoButtonCreate from './TodoButtonCreate';
 
-const todos = [
-  { text: 'Cortar cebolla', completed: true },
-  { text: 'Tomar el curso de intro a React', completed: false },
-  { text: 'Llorar con la llorona', completed: false },
-  { text: 'Lavar la ropa', completed: false },
-  { text: 'Agregar nueva tarea', completed: true },
-];
+// const todos = [
+//   { text: 'Cortar cebolla', completed: true },
+//   { text: 'Tomar el curso de intro a React', completed: false },
+//   { text: 'Llorar con la llorona', completed: false },
+//   { text: 'Lavar la ropa', completed: false },
+//   { text: 'Agregar nueva tarea', completed: true },
+// ];
+// localStorage.setItem('tasks', JSON.stringify(todos));
 
-function App() {
-  const [tasks, setTasks] = useState(todos);
+function useLocalStorage(itemName, initialValue) {
+  
+  const localStorageItem = localStorage.getItem(itemName);
+  if (!localStorageItem) {
+    localStorage.setItem('tasks', JSON.stringify(initialValue));
+  }
+  let parseItem = JSON.parse(localStorageItem);
+
+  const [item, setItem] = useState(parseItem);
+
+  const saveItem = (newItem) => {
+    setItem(newItem);
+    localStorage.setItem(itemName, JSON.stringify(newItem));
+  };
+
+  return [item, saveItem];
+}
+
+export default function App() {
+
+  const [tasks, saveTasks] = useLocalStorage('tasks', []);
   const [searchValue, setSearchValue] = useState('');
 
   const completedTasks = tasks.filter(task => task.completed).length;
@@ -24,24 +44,21 @@ function App() {
 
   const completeTask = (text) => {
     const newTasks = tasks.map(task => {
-
       if (task.text === text) {
         task.completed = !task.completed
       };
-
       return task;
     })
-    setTasks(newTasks);
+    saveTasks(newTasks);
   };
 
   const deleteTask = (text) => {
     const newTasks = tasks.filter(task => task.text !== text);
-    setTasks(newTasks);
+    saveTasks(newTasks);
   };
 
   return (
     <>
-
       <TodoCounterr
         total={totalTasks}
         completed={completedTasks}
@@ -59,15 +76,12 @@ function App() {
             text={task.text}
             completed={task.completed}
             onComplete={() => completeTask(task.text)}
-            onDelete={()=> deleteTask(task.text)}
+            onDelete={() => deleteTask(task.text)}
           />
         ))}
       </TodoList>
 
       <TodoButtonCreate />
-
     </>
   );
 }
-
-export default App;
